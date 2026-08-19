@@ -1,0 +1,45 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+config/proxy.yaml
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Runtime state
+*.sqlite3
+*.db
+*.log
+logs/
+data/trustedrag_auth.sqlite3
+data/webapp_model_settings.json
+data/.trustedrag-builds/
+data/corpus/*
+!data/corpus/.gitkeep
+data/output/*
+!data/output/.gitkeep
+data/rag_storage/*
+!data/rag_storage/.gitkeep
+data/name2id.json
+!data/name2id.example.json
+
+# Archives and OS/IDE files
+*.zip
+*.tar.gz
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

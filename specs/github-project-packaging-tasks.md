@@ -1,0 +1,221 @@
+# Tasks: TrustedRAG GitHub 可发布项目归档
+
+- [x] Task 1: 创建生产源码只读快照
+  - Acceptance:
+    - 从服务器导出 `raganything/`、`webapp/`、必要根配置、两个核心示例和上游授权文件。
+    - 快照不包含 `.git`、`.venv`、`data`、缓存、日志、数据库或压缩包。
+    - 记录快照时间和关键文件 SHA-256。
+  - Verify:
+    - `tar -tzf trustedrag-production-source.tar.gz`
+    - 检查归档中不存在禁止路径。
+  - Files:
+    - `work/export_trustedrag_source.sh`
+    - `work/trustedrag-production-source.tar.gz`
+    - `outputs/github-package/source-manifest.txt`
+
+- [x] Task 2: 创建 GitHub-ready 仓库骨架
+  - Acceptance:
+    - 创建 `TrustedRAG-GitHub/` 及规格规定的目录结构。
+    - 不覆盖或修改现有历史工作目录。
+    - 规格、计划和任务文件被复制到新仓库的 `specs/`。
+  - Verify:
+    - 目录树与规格一致。
+    - 所有目录均位于工作区目标目录内。
+  - Files:
+    - `TrustedRAG-GitHub/specs/github-project-packaging.md`
+    - `TrustedRAG-GitHub/specs/github-project-packaging-plan.md`
+    - `TrustedRAG-GitHub/specs/github-project-packaging-tasks.md`
+
+- [x] Task 3: 合并生产后端与 RAG-Anything 核心源码
+  - Acceptance:
+    - `raganything/` 和 `webapp/` 来自生产快照。
+    - `webapp/tests/` 全部保留。
+    - `examples/construct_graph_xzl.py` 与 `examples/retrieval_xzl.py` 被纳入。
+    - 无 `__pycache__`、`.pyc`、`.egg-info`。
+  - Verify:
+    - `python -m compileall -q raganything webapp`
+    - 文件来源哈希与生产快照一致。
+  - Files:
+    - `TrustedRAG-GitHub/raganything/**`
+    - `TrustedRAG-GitHub/webapp/**`
+    - `TrustedRAG-GitHub/examples/construct_graph_xzl.py`
+    - `TrustedRAG-GitHub/examples/retrieval_xzl.py`
+
+- [x] Task 4: 合并最新 React 前端源码
+  - Acceptance:
+    - 从 `work/frontend-build/frontend` 复制源码和 npm 配置。
+    - 不包含 `dist`、`node_modules`、缓存或 `pnpm-lock.yaml`。
+    - 前端保持当前 TrustedRAG 品牌、检索侧栏、多文件建库队列和登录逻辑。
+  - Verify:
+    - `cd TrustedRAG-GitHub/frontend && npm ci`
+    - `npm run build`
+  - Files:
+    - `TrustedRAG-GitHub/frontend/src/**`
+    - `TrustedRAG-GitHub/frontend/public/**`
+    - `TrustedRAG-GitHub/frontend/package.json`
+    - `TrustedRAG-GitHub/frontend/package-lock.json`
+    - `TrustedRAG-GitHub/frontend/*config*`
+
+- [x] Task 5: 生成 Python 依赖清单
+  - Acceptance:
+    - 运行依赖与开发依赖分离。
+    - 基础依赖覆盖 FastAPI、LightRAG、OpenAI-compatible API、Office/PDF 解析和 SQLite 使用。
+    - MinerU、Torch 等重型依赖放入可选清单或单独安装说明。
+    - 不含服务器 editable Git 路径或无关依赖。
+  - Verify:
+    - 对照生产 `pip freeze`、上游配置和实际 import。
+    - 在服务器临时虚拟环境或现有环境中执行依赖一致性检查。
+  - Files:
+    - `TrustedRAG-GitHub/requirements.txt`
+    - `TrustedRAG-GitHub/requirements-dev.txt`
+    - `TrustedRAG-GitHub/requirements-full.txt`
+    - `TrustedRAG-GitHub/pyproject.toml`
+
+- [x] Task 6: 创建环境模板和 Git 忽略规则
+  - Acceptance:
+    - `.env.example` 覆盖 `settings.py` 使用的全部环境变量。
+    - 所有 API Key 都是 `replace-me` 等占位符。
+    - `.gitignore` 排除数据、数据库、密钥、缓存、构建产物和本地 IDE 文件。
+    - 创建安全的数据目录空模板。
+  - Verify:
+    - 环境变量名称自动对照扫描无遗漏。
+    - `git check-ignore` 能忽略模拟语料、SQLite、`.env` 和模型配置文件。
+  - Files:
+    - `TrustedRAG-GitHub/.env.example`
+    - `TrustedRAG-GitHub/.gitignore`
+    - `TrustedRAG-GitHub/data/README.md`
+    - `TrustedRAG-GitHub/data/name2id.example.json`
+    - `TrustedRAG-GitHub/data/**/.gitkeep`
+
+- [x] Task 7: 创建部署模板
+  - Acceptance:
+    - systemd 服务使用 `/opt/trustedrag` 等可配置标准路径。
+    - Nginx 模板代理 `/api/` 至 `127.0.0.1:5051`，静态前端路径可配置。
+    - 安装脚本不会覆盖已有数据目录或真实 `.env`。
+    - 环境检查脚本验证 Python、Node、Nginx 和目录权限。
+  - Verify:
+    - `bash -n` 检查全部 shell 脚本。
+    - service 文件包含正确 WorkingDirectory、EnvironmentFile 和 ExecStart。
+    - Nginx 配置不含生产 IP 或当前服务器域名。
+  - Files:
+    - `TrustedRAG-GitHub/deploy/systemd/trustedrag-api.service`
+    - `TrustedRAG-GitHub/deploy/nginx/trustedrag.conf`
+    - `TrustedRAG-GitHub/deploy/install.sh`
+    - `TrustedRAG-GitHub/scripts/init-data-layout.sh`
+    - `TrustedRAG-GitHub/scripts/check-environment.sh`
+
+- [x] Task 8: 创建开发启动脚本和配置校验工具
+  - Acceptance:
+    - 提供一条命令启动后端开发服务。
+    - 提供配置检查，输出缺失字段但不打印密钥值。
+    - Windows 用户在 README 中获得等价 PowerShell 命令。
+  - Verify:
+    - `bash -n scripts/run-dev.sh`
+    - 在未配置密钥时，检查脚本返回明确缺失项。
+  - Files:
+    - `TrustedRAG-GitHub/scripts/run-dev.sh`
+    - `TrustedRAG-GitHub/scripts/validate-config.py`
+
+- [x] Task 9: 编写根 README 和第三方说明
+  - Acceptance:
+    - README 包含从克隆到启动、测试、部署的完整命令。
+    - 清楚说明生成模型与 Embedding 模型必须分别配置。
+    - 说明真实知识库数据未包含。
+    - 保留并说明 RAG-Anything、LightRAG、UltraRAG 相关来源。
+    - 不宣称未经确认的开源授权。
+  - Verify:
+    - README 中所有路径和命令与最终目录一致。
+    - 不包含服务器 IP、用户名、密码或真实 API 地址。
+  - Files:
+    - `TrustedRAG-GitHub/README.md`
+    - `TrustedRAG-GitHub/README_EN.md`
+    - `TrustedRAG-GitHub/THIRD_PARTY_NOTICES.md`
+    - `TrustedRAG-GitHub/LICENSE`
+
+- [x] Task 10: 编写架构、配置与建库文档
+  - Acceptance:
+    - 记录可信文档路由、反向证据检索、LightRAG 检索、生成、引用和 PDF 侧栏流程。
+    - 记录多文件串行建库队列、进度区间、失败重试和发布原子性。
+    - 记录全部环境变量和常见故障，包括模型余额不足与 `INDEX_INCOMPLETE`。
+  - Verify:
+    - 文档中的接口路径和配置名可在代码中找到。
+    - 不复制真实业务文档内容。
+  - Files:
+    - `TrustedRAG-GitHub/docs/architecture.md`
+    - `TrustedRAG-GitHub/docs/configuration.md`
+    - `TrustedRAG-GitHub/docs/knowledge-base-build.md`
+
+- [x] Task 11: 编写部署和安全文档
+  - Acceptance:
+    - 部署文档覆盖 Nginx、systemd、权限、升级和回滚。
+    - 安全文档覆盖密钥、用户隔离、PDF 登录门禁、知识库权限和数据备份策略。
+    - 明确生产环境不应使用默认密码。
+  - Verify:
+    - 与部署模板逐项对应。
+    - 不含当前生产服务器敏感配置。
+  - Files:
+    - `TrustedRAG-GitHub/docs/deployment.md`
+    - `TrustedRAG-GitHub/docs/security.md`
+
+- [x] Task 12: 运行密钥、路径和大文件审计
+  - Acceptance:
+    - 扫描所有文件名和文件内容。
+    - 不存在真实 API Key、SSH 密码、私钥、Cookie、SQLite、日志和语料。
+    - 不存在生产绝对路径、开发者本机目录或生产服务器地址。
+    - 所有超过 5 MB 的文件均有明确保留理由；默认应为零。
+  - Verify:
+    - 生成机器可读和人类可读审计报告。
+    - 任何命中在下一任务前清零。
+  - Files:
+    - `TrustedRAG-GitHub/scripts/audit-release.py`
+    - `outputs/github-package/security-audit.txt`
+    - `outputs/github-package/large-files.txt`
+
+- [x] Task 13: 验证后端源码
+  - Acceptance:
+    - Python 编译通过。
+    - `webapp/tests` 全部通过，或对环境特有测试提供明确说明。
+    - 测试在临时数据目录运行，不访问生产数据。
+  - Verify:
+    - `python -m compileall -q raganything webapp`
+    - `python -m pytest webapp/tests -q`
+  - Files:
+    - `outputs/github-package/backend-test.txt`
+
+- [x] Task 14: 验证前端源码
+  - Acceptance:
+    - `npm ci` 成功。
+    - TypeScript 检查和 Vite 构建成功。
+    - 构建输出不进入最终仓库归档。
+  - Verify:
+    - `npm run build`
+  - Files:
+    - `outputs/github-package/frontend-build.txt`
+
+- [x] Task 15: 初始化本地 Git 元数据并验证忽略规则
+  - Acceptance:
+    - `TrustedRAG-GitHub/` 初始化为独立 Git 仓库。
+    - 默认分支为 `main`。
+    - 暂不配置远程仓库，不推送。
+    - `git status` 仅显示允许进入仓库的源码和文档。
+  - Verify:
+    - `git status --short`
+    - `git check-ignore` 测试敏感模拟文件。
+  - Files:
+    - `TrustedRAG-GitHub/.git/`
+
+- [x] Task 16: 生成最终归档和校验文件
+  - Acceptance:
+    - 生成 `TrustedRAG-GitHub.zip`。
+    - ZIP 解压到临时目录后结构完整。
+    - 生成 SHA-256 文件、文件清单和最终报告。
+    - ZIP 不包含 `.git/`，本地项目目录保留 `.git/` 供后续推送。
+  - Verify:
+    - 解压后检查 README、后端、前端、配置模板和部署文件。
+    - 对 ZIP 执行 SHA-256 校验。
+    - 再次执行禁止文件扫描。
+  - Files:
+    - `TrustedRAG-GitHub.zip`
+    - `TrustedRAG-GitHub.zip.sha256`
+    - `outputs/github-package/final-manifest.txt`
+    - `outputs/github-package/final-report.md`

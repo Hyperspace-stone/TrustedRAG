@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# Optional full document/OCR pipeline. This group is large and may install
+# CPU/GPU runtimes; install it only when MinerU processing is required.
+mineru[core]==3.4.5
+torch==2.13.0
+torchvision==0.28.0
+opencv-python==5.0.0.93
+transformers==4.57.6
+accelerate==1.14.0

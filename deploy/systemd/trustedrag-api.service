@@ -1,0 +1,17 @@
+[Unit]
+Description=TrustedRAG API
+After=network.target nginx.service
+
+[Service]
+Type=simple
+User=__SERVICE_USER__
+WorkingDirectory=__PROJECT_ROOT__
+EnvironmentFile=__PROJECT_ROOT__/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=__PROJECT_ROOT__/.venv/bin/uvicorn webapp.app:app --host 127.0.0.1 --port 5051
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
